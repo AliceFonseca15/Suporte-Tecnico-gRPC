@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package suporte;
+
+message Chamado {
+    int32 id = 1;
+    string cliente = 2;
+    string descricao = 3;
+    string prioridade = 4;
+    string status = 5; 
+}
+
+message IdRequest { int32 id = 1; }
+message Empty {} 
+
+message ListaChamados {
+    repeated Chamado chamados = 1; 
+}
+
+message StatusResponse {
+    bool sucesso = 1;
+    string mensagem = 2;
+}
+
+service ServicoSuporte {
+    rpc AbrirChamado (Chamado) returns (StatusResponse);
+    rpc ConsultarChamado (IdRequest) returns (Chamado);
+    rpc ListarChamados (Empty) returns (ListaChamados);
+    rpc AtualizarChamado (Chamado) returns (StatusResponse); 
+}
