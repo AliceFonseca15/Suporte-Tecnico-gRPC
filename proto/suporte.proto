@@ -26,5 +26,6 @@ service ServicoSuporte {
     rpc AbrirChamado (Chamado) returns (StatusResponse);
     rpc ConsultarChamado (IdRequest) returns (Chamado);
     rpc ListarChamados (Empty) returns (ListaChamados);
-    rpc AtualizarChamado (Chamado) returns (StatusResponse); 
+    rpc AtualizarChamado (Chamado) returns (StatusResponse);
+    rpc ResolverChamado (IdRequest) returns (StatusResponse);
 }

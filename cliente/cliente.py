@@ -9,14 +9,15 @@ import suporte_pb2_grpc
 def run():
     with grpc.insecure_channel('localhost:50051') as channel:
         stub = suporte_pb2_grpc.ServicoSuporteStub(channel)
-        
+
         while True:
             print("\n--- MENU SUPORTE TÉCNICO ---")
             print("1. Cadastrar Chamado")
             print("2. Consultar Chamado")
             print("3. Listar Chamados")
             print("4. Atualizar Chamado")
-            print("5. Sair")
+            print("5. Enviar Chamado para o MOM (Resolver)")
+            print("6. Sair")
             opcao = input("Escolha uma opção: ")
 
             if opcao == '1':
@@ -41,6 +42,7 @@ def run():
                     print(f"Cliente: {chamado.cliente}")
                     print(f"Descrição: {chamado.descricao}")
                     print(f"Prioridade: {chamado.prioridade}")
+                    print(f"Status: {chamado.status}")
                 except grpc.RpcError as e:
                     print(f"Erro ao consultar: {e.details()}")
 
@@ -53,13 +55,16 @@ def run():
             elif opcao == '4':
                 try:
                     cid = int(input("Digite o ID do chamado para atualizar: "))
+                    
+                    chamado_atual = stub.ConsultarChamado(suporte_pb2.IdRequest(id=cid))
+
                     cliente = input("Nome do Cliente: ")
                     desc = input("Descrição do problema: ")
                     prior = input("Prioridade (Baixa/Média/Alta): ")
-                    status = input("Status (Aberto/Em Andamento/Fechado): ")
 
                     response = stub.AtualizarChamado(suporte_pb2.Chamado(
-                        id=cid, cliente=cliente, descricao=desc, prioridade=prior, status=status
+                        id=cid, cliente=cliente, descricao=desc, prioridade=prior,
+                        status=chamado_atual.status
                     ))
                     print(f"\nResposta do Servidor: {response.mensagem}")
                 except ValueError:
@@ -68,6 +73,19 @@ def run():
                     print(f"Erro ao atualizar: {e.details()}")
 
             elif opcao == '5':
+                try:
+                    cid = int(input("Digite o ID do chamado para enviar ao MOM: "))
+                    print("\nEnviando chamado para a fila do MOM e aguardando "
+                          "um atendente processá-lo... (isso pode levar alguns segundos)")
+
+                    response = stub.ResolverChamado(suporte_pb2.IdRequest(id=cid))
+                    print(f"\nResposta do Atendente (via MOM): {response.mensagem}")
+                except ValueError:
+                    print("Erro: O ID deve ser um número inteiro.")
+                except grpc.RpcError as e:
+                    print(f"Erro ao resolver via MOM: {e.details()}")
+
+            elif opcao == '6':
                 break
             else:
                 print("Opção inválida!")
